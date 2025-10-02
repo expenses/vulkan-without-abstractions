@@ -96,6 +96,19 @@ fn main() {
         // Bind the memory to the buffer
         device.bind_buffer_memory(buffer, memory, 0).unwrap();
 
+        // Record into the command buffer
+        device
+            .begin_command_buffer(command_buffer, &vk::CommandBufferBeginInfo::default())
+            .unwrap();
+        device.cmd_fill_buffer(
+            command_buffer,
+            buffer,
+            0,
+            allocation_size,
+            u32::from_le_bytes([20, 20, 35, 255]),
+        );
+        device.end_command_buffer(command_buffer).unwrap();
+
         // Map the memory to the CPU, getting a pointer.
         let mapped_ptr = device
             .map_memory(memory, 0, allocation_size, vk::MemoryMapFlags::empty())
