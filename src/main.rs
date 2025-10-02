@@ -66,5 +66,12 @@ fn main() {
                 None,
             )
             .unwrap();
+
+        // Map the memory to the CPU, getting a pointer.
+        let mapped_ptr = device
+            .map_memory(memory, 0, allocation_size, vk::MemoryMapFlags::empty())
+            .unwrap();
+
+        let slice = std::slice::from_raw_parts(mapped_ptr as *const u8, allocation_size as usize);
     }
 }
