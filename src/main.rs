@@ -14,5 +14,11 @@ fn main() {
                 None,
             )
             .unwrap();
+
+        // List physical devices and just use the 1st (or 0th rather) one.
+        // Hopefully your loader will list them in a sensible order otherwise
+        // llvmpipe or something might be selected!
+        let physical_devices = instance.enumerate_physical_devices().unwrap();
+        let physical_device = physical_devices[0];
     }
 }
