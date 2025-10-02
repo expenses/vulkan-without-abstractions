@@ -39,5 +39,19 @@ fn main() {
         // Hopefully these are listed in a sensible order by the driver otherwise
         // it could choose e.g. a transfer-only queue
         let queue = device.get_device_queue(0, 0);
+
+        // Get the right type of memory for the buffer. We need to select a type that
+        // is visible to the host (CPU code) in order to read it back. This is the
+        // sort of thing that an GPU allocator library would do for you.
+        let memory_types = instance.get_physical_device_memory_properties(physical_device);
+        let host_visible_memory_index = memory_types
+            .memory_types_as_slice()
+            .iter()
+            .position(|ty| {
+                ty.property_flags.contains(
+                    vk::MemoryPropertyFlags::DEVICE_LOCAL | vk::MemoryPropertyFlags::HOST_VISIBLE,
+                )
+            })
+            .unwrap();
     }
 }
