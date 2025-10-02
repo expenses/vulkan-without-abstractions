@@ -4,5 +4,15 @@ fn main() {
     unsafe {
         // Create dynamically linked entry
         let entry = ash::Entry::load().unwrap();
+
+        // Create instance, setting the version to 1.3
+        let api_version = vk::make_api_version(0, 1, 3, 0);
+        let instance = entry
+            .create_instance(
+                &vk::InstanceCreateInfo::default()
+                    .application_info(&vk::ApplicationInfo::default().api_version(api_version)),
+                None,
+            )
+            .unwrap();
     }
 }
