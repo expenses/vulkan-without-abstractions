@@ -109,6 +109,25 @@ fn main() {
         );
         device.end_command_buffer(command_buffer).unwrap();
 
+        // Create a fence, submit the command buffer to the queue and wait on the fence
+        // with a timeout of 1 billion nanoseconds (1 second)
+
+        let fence = device
+            .create_fence(&vk::FenceCreateInfo::default(), None)
+            .unwrap();
+
+        device
+            .queue_submit(
+                queue,
+                &[vk::SubmitInfo::default().command_buffers(&[command_buffer])],
+                fence,
+            )
+            .unwrap();
+
+        device
+            .wait_for_fences(&[fence], true, 1_000_000_000)
+            .unwrap();
+
         // Map the memory to the CPU, getting a pointer.
         let mapped_ptr = device
             .map_memory(memory, 0, allocation_size, vk::MemoryMapFlags::empty())
