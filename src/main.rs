@@ -73,5 +73,12 @@ fn main() {
             .unwrap();
 
         let slice = std::slice::from_raw_parts(mapped_ptr as *const u8, allocation_size as usize);
+
+        use std::io::Write;
+        let mut output = std::io::BufWriter::new(std::fs::File::create("output.ppm").unwrap());
+        write!(output, "P3 {} {} 255", width, height).unwrap();
+        for rgba in slice.chunks(4) {
+            write!(output, " {} {} {}", rgba[0], rgba[1], rgba[2]).unwrap();
+        }
     }
 }
