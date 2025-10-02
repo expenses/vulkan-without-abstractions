@@ -53,5 +53,18 @@ fn main() {
                 )
             })
             .unwrap();
+
+        let width = 100;
+        let height = 100;
+        let allocation_size = width * height * 4;
+
+        let memory = device
+            .allocate_memory(
+                &vk::MemoryAllocateInfo::default()
+                    .allocation_size(allocation_size)
+                    .memory_type_index(host_visible_memory_index as u32),
+                None,
+            )
+            .unwrap();
     }
 }
