@@ -67,6 +67,21 @@ fn main() {
             )
             .unwrap();
 
+        // Create command pool with which to allocate command buffers
+        let command_pool = device
+            .create_command_pool(&vk::CommandPoolCreateInfo::default(), None)
+            .unwrap();
+
+        // Allocate a command buffer
+        let command_buffers = device
+            .allocate_command_buffers(
+                &vk::CommandBufferAllocateInfo::default()
+                    .command_buffer_count(1)
+                    .command_pool(command_pool),
+            )
+            .unwrap();
+        let command_buffer = command_buffers[0];
+
         // Map the memory to the CPU, getting a pointer.
         let mapped_ptr = device
             .map_memory(memory, 0, allocation_size, vk::MemoryMapFlags::empty())
