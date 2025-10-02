@@ -82,6 +82,20 @@ fn main() {
             .unwrap();
         let command_buffer = command_buffers[0];
 
+        // Create a buffer object that wraps the memory. As we want to be able to fill
+        // it with values, the `TRANSFER_DST` usage flags needs to be set.
+        let buffer = device
+            .create_buffer(
+                &vk::BufferCreateInfo::default()
+                    .size(allocation_size)
+                    .usage(vk::BufferUsageFlags::TRANSFER_DST),
+                None,
+            )
+            .unwrap();
+
+        // Bind the memory to the buffer
+        device.bind_buffer_memory(buffer, memory, 0).unwrap();
+
         // Map the memory to the CPU, getting a pointer.
         let mapped_ptr = device
             .map_memory(memory, 0, allocation_size, vk::MemoryMapFlags::empty())
