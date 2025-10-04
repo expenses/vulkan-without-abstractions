@@ -96,6 +96,27 @@ fn main() {
         // Bind the memory to the buffer
         device.bind_buffer_memory(buffer, memory, 0).unwrap();
 
+        let extent = vk::Extent3D {
+            width: width as _,
+            height: height as _,
+            depth: 1,
+        };
+
+        let image = device
+            .create_image(
+                &vk::ImageCreateInfo::default()
+                    .image_type(vk::ImageType::TYPE_2D)
+                    .samples(vk::SampleCountFlags::TYPE_1)
+                    .mip_levels(1)
+                    .usage(
+                        vk::ImageUsageFlags::TRANSFER_SRC | vk::ImageUsageFlags::COLOR_ATTACHMENT,
+                    )
+                    .array_layers(1)
+                    .format(vk::Format::R8G8B8A8_UNORM)
+                    .extent(extent),
+                None,
+            )
+            .unwrap();
         // Record into the command buffer
         device
             .begin_command_buffer(command_buffer, &vk::CommandBufferBeginInfo::default())
