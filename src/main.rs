@@ -169,6 +169,10 @@ fn main() {
             )
             .unwrap();
 
+        let pipeline_layout = device
+            .create_pipeline_layout(&vk::PipelineLayoutCreateInfo::default(), None)
+            .unwrap();
+
         // Record into the command buffer
         device
             .begin_command_buffer(command_buffer, &vk::CommandBufferBeginInfo::default())
