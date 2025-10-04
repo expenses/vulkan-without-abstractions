@@ -164,6 +164,18 @@ fn main() {
                     .image(image)
                     .old_layout(vk::ImageLayout::UNDEFINED)
                     .new_layout(vk::ImageLayout::GENERAL)
+                    .dst_access_mask(vk::AccessFlags2::COLOR_ATTACHMENT_WRITE)
+                    .dst_stage_mask(vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT)
+                    .subresource_range(image_subresource_range),
+            ]),
+        );
+        device.cmd_pipeline_barrier2(
+            command_buffer,
+            &vk::DependencyInfo::default().image_memory_barriers(&[
+                vk::ImageMemoryBarrier2::default()
+                    .image(image)
+                    .src_access_mask(vk::AccessFlags2::COLOR_ATTACHMENT_WRITE)
+                    .src_stage_mask(vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT)
                     .dst_access_mask(vk::AccessFlags2::TRANSFER_READ)
                     .dst_stage_mask(vk::PipelineStageFlags2::COPY)
                     .subresource_range(image_subresource_range),
