@@ -139,6 +139,17 @@ fn main() {
             .level_count(1)
             .aspect_mask(vk::ImageAspectFlags::COLOR);
 
+        let image_view = device
+            .create_image_view(
+                &vk::ImageViewCreateInfo::default()
+                    .image(image)
+                    .format(vk::Format::R8G8B8A8_UNORM)
+                    .view_type(vk::ImageViewType::TYPE_2D)
+                    .subresource_range(image_subresource_range),
+                None,
+            )
+            .unwrap();
+
         // Record into the command buffer
         device
             .begin_command_buffer(command_buffer, &vk::CommandBufferBeginInfo::default())
