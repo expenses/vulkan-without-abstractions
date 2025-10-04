@@ -32,6 +32,10 @@ fn main() {
                         vk::DeviceQueueCreateInfo::default().queue_priorities(&[1.0])
                     ])
                     .push_next(
+                        &mut vk::PhysicalDeviceVulkan11Features::default()
+                            .shader_draw_parameters(true),
+                    )
+                    .push_next(
                         &mut vk::PhysicalDeviceVulkan13Features::default()
                             .synchronization2(true)
                             .dynamic_rendering(true),
