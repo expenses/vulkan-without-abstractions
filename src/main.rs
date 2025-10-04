@@ -134,10 +134,29 @@ fn main() {
             .unwrap();
         device.bind_image_memory(image, image_memory, 0).unwrap();
 
+        let image_subresource_range = vk::ImageSubresourceRange::default()
+            .layer_count(1)
+            .level_count(1)
+            .aspect_mask(vk::ImageAspectFlags::COLOR);
+
         // Record into the command buffer
         device
             .begin_command_buffer(command_buffer, &vk::CommandBufferBeginInfo::default())
             .unwrap();
+
+        device.cmd_pipeline_barrier2(
+            command_buffer,
+            &vk::DependencyInfo::default().image_memory_barriers(&[
+                vk::ImageMemoryBarrier2::default()
+                    .image(image)
+                    .old_layout(vk::ImageLayout::UNDEFINED)
+                    .new_layout(vk::ImageLayout::GENERAL)
+                    .dst_access_mask(vk::AccessFlags2::TRANSFER_READ)
+                    .dst_stage_mask(vk::PipelineStageFlags2::COPY)
+                    .subresource_range(image_subresource_range),
+            ]),
+        );
+
         device.cmd_fill_buffer(
             command_buffer,
             buffer,
