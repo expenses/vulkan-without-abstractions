@@ -63,8 +63,8 @@ fn main() {
             })
             .unwrap();
 
-        let width = 100;
-        let height = 100;
+        let width = 512;
+        let height = 512;
         let allocation_size = width * height * 4;
 
         let memory = device
