@@ -30,7 +30,10 @@ fn main() {
                     // a single queue.
                     .queue_create_infos(&[
                         vk::DeviceQueueCreateInfo::default().queue_priorities(&[1.0])
-                    ]),
+                    ])
+                    .push_next(
+                        &mut vk::PhysicalDeviceVulkan13Features::default().synchronization2(true),
+                    ),
                 None,
             )
             .unwrap();
