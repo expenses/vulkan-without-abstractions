@@ -157,12 +157,18 @@ fn main() {
             ]),
         );
 
-        device.cmd_fill_buffer(
+        device.cmd_copy_image_to_buffer(
             command_buffer,
+            image,
+            vk::ImageLayout::GENERAL,
             buffer,
-            0,
-            allocation_size,
-            u32::from_le_bytes([20, 20, 35, 255]),
+            &[vk::BufferImageCopy::default()
+                .image_extent(extent)
+                .image_subresource(
+                    vk::ImageSubresourceLayers::default()
+                        .layer_count(1)
+                        .aspect_mask(vk::ImageAspectFlags::COLOR),
+                )],
         );
         device.end_command_buffer(command_buffer).unwrap();
 
