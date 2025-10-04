@@ -261,6 +261,28 @@ fn main() {
                     height: height as _,
                 })),
         );
+        device.cmd_bind_pipeline(command_buffer, vk::PipelineBindPoint::GRAPHICS, pipeline);
+        device.cmd_set_scissor(
+            command_buffer,
+            0,
+            &[vk::Rect2D::default().extent(vk::Extent2D {
+                width: width as _,
+                height: height as _,
+            })],
+        );
+        device.cmd_set_viewport(
+            command_buffer,
+            0,
+            &[vk::Viewport {
+                x: 0.0,
+                y: 0.0,
+                width: width as _,
+                height: height as _,
+                min_depth: 0.0,
+                max_depth: 1.0,
+            }],
+        );
+        device.cmd_draw(command_buffer, 3, 1, 0, 0);
         device.cmd_end_rendering(command_buffer);
         device.cmd_pipeline_barrier2(
             command_buffer,
