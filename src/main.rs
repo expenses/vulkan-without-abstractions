@@ -117,6 +117,20 @@ fn main() {
                 None,
             )
             .unwrap();
+
+        let requirements = device.get_image_memory_requirements(image);
+        assert_ne!(requirements.memory_type_bits, 0);
+        let image_memory_type_index = requirements.memory_type_bits.trailing_zeros();
+        let image_memory = device
+            .allocate_memory(
+                &vk::MemoryAllocateInfo::default()
+                    .allocation_size(requirements.size)
+                    .memory_type_index(image_memory_type_index),
+                None,
+            )
+            .unwrap();
+        device.bind_image_memory(image, image_memory, 0).unwrap();
+
         // Record into the command buffer
         device
             .begin_command_buffer(command_buffer, &vk::CommandBufferBeginInfo::default())
