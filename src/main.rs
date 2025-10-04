@@ -152,6 +152,19 @@ fn main() {
             )
             .unwrap();
 
+        let shader_bytes = std::fs::read("shaders/shader.spv").unwrap();
+        let shader_module = device
+            .create_shader_module(
+                &vk::ShaderModuleCreateInfo::default()
+                    // SPIR-V code consists of an array of 4-byte values
+                    .code(std::slice::from_raw_parts(
+                        shader_bytes.as_ptr() as *const u32,
+                        shader_bytes.len() / 4,
+                    )),
+                None,
+            )
+            .unwrap();
+
         // Record into the command buffer
         device
             .begin_command_buffer(command_buffer, &vk::CommandBufferBeginInfo::default())
