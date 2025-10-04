@@ -169,6 +169,26 @@ fn main() {
                     .subresource_range(image_subresource_range),
             ]),
         );
+        device.cmd_begin_rendering(
+            command_buffer,
+            &vk::RenderingInfo::default()
+                .layer_count(1)
+                .color_attachments(&[vk::RenderingAttachmentInfo::default()
+                    .image_view(image_view)
+                    .image_layout(vk::ImageLayout::GENERAL)
+                    .load_op(vk::AttachmentLoadOp::CLEAR)
+                    .store_op(vk::AttachmentStoreOp::STORE)
+                    .clear_value(vk::ClearValue {
+                        color: vk::ClearColorValue {
+                            float32: [0.1, 0.1, 0.2, 1.0],
+                        },
+                    })])
+                .render_area(vk::Rect2D::default().extent(vk::Extent2D {
+                    width: width as _,
+                    height: height as _,
+                })),
+        );
+        device.cmd_end_rendering(command_buffer);
         device.cmd_pipeline_barrier2(
             command_buffer,
             &vk::DependencyInfo::default().image_memory_barriers(&[
