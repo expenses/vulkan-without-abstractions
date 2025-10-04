@@ -173,6 +173,58 @@ fn main() {
             .create_pipeline_layout(&vk::PipelineLayoutCreateInfo::default(), None)
             .unwrap();
 
+        let mut rendering_create_info = vk::PipelineRenderingCreateInfo::default()
+            .color_attachment_formats(&[vk::Format::R8G8B8A8_UNORM]);
+
+        let pipelines = device
+            .create_graphics_pipelines(
+                vk::PipelineCache::null(),
+                &[vk::GraphicsPipelineCreateInfo::default()
+                    .layout(pipeline_layout)
+                    .stages(&[
+                        vk::PipelineShaderStageCreateInfo::default()
+                            .module(shader_module)
+                            .name(c"vertex")
+                            .stage(vk::ShaderStageFlags::VERTEX),
+                        vk::PipelineShaderStageCreateInfo::default()
+                            .module(shader_module)
+                            .name(c"fragment")
+                            .stage(vk::ShaderStageFlags::FRAGMENT),
+                    ])
+                    .vertex_input_state(&vk::PipelineVertexInputStateCreateInfo::default())
+                    .rasterization_state(
+                        &vk::PipelineRasterizationStateCreateInfo::default().line_width(1.0),
+                    )
+                    .multisample_state(
+                        &vk::PipelineMultisampleStateCreateInfo::default()
+                            .rasterization_samples(vk::SampleCountFlags::TYPE_1),
+                    )
+                    .input_assembly_state(
+                        &vk::PipelineInputAssemblyStateCreateInfo::default()
+                            .topology(vk::PrimitiveTopology::TRIANGLE_LIST),
+                    )
+                    .color_blend_state(
+                        &vk::PipelineColorBlendStateCreateInfo::default()
+                            .attachments(&[vk::PipelineColorBlendAttachmentState::default()
+                                .color_write_mask(vk::ColorComponentFlags::RGBA)]),
+                    )
+                    .viewport_state(
+                        &vk::PipelineViewportStateCreateInfo::default()
+                            .viewport_count(1)
+                            .scissor_count(1),
+                    )
+                    .dynamic_state(
+                        &vk::PipelineDynamicStateCreateInfo::default().dynamic_states(&[
+                            vk::DynamicState::VIEWPORT,
+                            vk::DynamicState::SCISSOR,
+                        ]),
+                    )
+                    .push_next(&mut rendering_create_info)],
+                None,
+            )
+            .unwrap();
+        let pipeline = pipelines[0];
+
         // Record into the command buffer
         device
             .begin_command_buffer(command_buffer, &vk::CommandBufferBeginInfo::default())
