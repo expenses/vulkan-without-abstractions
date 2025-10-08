@@ -219,7 +219,14 @@ fn main() {
             .unwrap();
 
         let pipeline_layout = device
-            .create_pipeline_layout(&vk::PipelineLayoutCreateInfo::default(), None)
+            .create_pipeline_layout(
+                &vk::PipelineLayoutCreateInfo::default().push_constant_ranges(&[
+                    vk::PushConstantRange::default()
+                        .stage_flags(vk::ShaderStageFlags::VERTEX)
+                        .size(8),
+                ]),
+                None,
+            )
             .unwrap();
 
         let mut rendering_create_info = vk::PipelineRenderingCreateInfo::default()
@@ -311,6 +318,13 @@ fn main() {
                 })),
         );
         device.cmd_bind_pipeline(command_buffer, vk::PipelineBindPoint::GRAPHICS, pipeline);
+        device.cmd_push_constants(
+            command_buffer,
+            pipeline_layout,
+            vk::ShaderStageFlags::VERTEX,
+            0,
+            &dragon_address.to_le_bytes(),
+        );
         device.cmd_set_scissor(
             command_buffer,
             0,
