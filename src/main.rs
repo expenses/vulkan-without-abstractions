@@ -31,9 +31,14 @@ fn main() {
                     .queue_create_infos(&[
                         vk::DeviceQueueCreateInfo::default().queue_priorities(&[1.0])
                     ])
+                    .enabled_features(&vk::PhysicalDeviceFeatures::default().shader_int64(true))
                     .push_next(
                         &mut vk::PhysicalDeviceVulkan11Features::default()
                             .shader_draw_parameters(true),
+                    )
+                    .push_next(
+                        &mut vk::PhysicalDeviceVulkan12Features::default()
+                            .buffer_device_address(true),
                     )
                     .push_next(
                         &mut vk::PhysicalDeviceVulkan13Features::default()
@@ -155,6 +160,50 @@ fn main() {
                 None,
             )
             .unwrap();
+
+        // Open file and get size
+        let mut dragon = std::fs::File::open("dragon.bin").unwrap();
+        let dragon_size = dragon.metadata().unwrap().len();
+        // Allocate memory
+        let dragon_memory = device
+            .allocate_memory(
+                &vk::MemoryAllocateInfo::default()
+                    .allocation_size(dragon_size)
+                    .memory_type_index(host_visible_memory_index as u32)
+                    .push_next(
+                        &mut vk::MemoryAllocateFlagsInfo::default()
+                            .flags(vk::MemoryAllocateFlags::DEVICE_ADDRESS),
+                    ),
+                None,
+            )
+            .unwrap();
+        // map to slice, read from file
+        let dragon_slice = std::slice::from_raw_parts_mut(
+            device
+                .map_memory(dragon_memory, 0, dragon_size, vk::MemoryMapFlags::empty())
+                .unwrap() as *mut u8,
+            dragon_size as usize,
+        );
+        use std::io::Read;
+        dragon.read_exact(dragon_slice).unwrap();
+        // Get the number of indices from the mapped data
+        let num_indices = u32::from_le_bytes(<[u8; 4]>::try_from(&dragon_slice[..4]).unwrap());
+        // Create and bind a buffer
+        let dragon_buffer = device
+            .create_buffer(
+                &vk::BufferCreateInfo::default()
+                    .size(dragon_size)
+                    .usage(vk::BufferUsageFlags::SHADER_DEVICE_ADDRESS),
+                None,
+            )
+            .unwrap();
+        device
+            .bind_buffer_memory(dragon_buffer, dragon_memory, 0)
+            .unwrap();
+        // Get the device address of the buffer
+        let dragon_address = device.get_buffer_device_address(
+            &vk::BufferDeviceAddressInfo::default().buffer(dragon_buffer),
+        );
 
         let shader_bytes = std::fs::read("shaders/shader.spv").unwrap();
         let shader_module = device
@@ -282,7 +331,7 @@ fn main() {
                 max_depth: 1.0,
             }],
         );
-        device.cmd_draw(command_buffer, 3, 1, 0, 0);
+        device.cmd_draw(command_buffer, num_indices, 1, 0, 0);
         device.cmd_end_rendering(command_buffer);
         device.cmd_pipeline_barrier2(
             command_buffer,
