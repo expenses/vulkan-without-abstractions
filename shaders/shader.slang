@@ -27,12 +27,12 @@ float4x4 look_to_rh(float3 eye, float3 dir, float3 up) {
     let f = dir;
     let s = normalize(cross(f, up));
     let u = cross(s, f);
-    
+
     return float4x4(
         float4(s, -dot(eye, s)),
         float4(u, -dot(eye, u)),
         float4(-f, dot(eye, f)),
-        float4(0.0, 0.0, 0.0, 1.0)  
+        float4(0.0, 0.0, 0.0, 1.0)
     );
 }
 
@@ -41,23 +41,23 @@ float4x4 look_at_rh(float3 eye, float3 center, float3 up) {
 }
 
 [shader("vertex")]
-Interp vertex(uint vertex_id : SV_VertexID) {
-    Interp interp;
-    interp.col = float3(0);
-    interp.col[vertex_id] = 1.0;
-    interp.pos = float4(0.0, 0.5, 0.0, 1.0);
-    if (vertex_id == 0) {
-        interp.pos.y = -0.5;
-    } else if (vertex_id == 1) {
-        interp.pos.x = 0.5;
-    } else {
-        interp.pos.x = -0.5;
-    }
-    
+Interp vertex(uint* address, uint vertex_id : SV_VertexID) {
+    let num_indices = address[0];
+    let num_vertices = address[1];
+    uint* indices = address+2;
+    float3* positions = (float3*) (indices + num_indices);
+    float3* normals = positions + num_vertices;
+
+    let index = indices[vertex_id];
+    let position = positions[index];
+    let normal = normals[index];
+
     let proj = perspective_reversed_infinite_z_vk(1.0297443, 1.0, 0.001);
-    let view = look_at_rh(float3(0.5, 0.0, -1.0), float3(0.0), float3(0.0, -1.0, 0.0));
-    
-    interp.pos = mul(mul(proj, view), interp.pos);
+    let view = look_at_rh(float3(10.0), float3(0.0), float3(0.0, -1.0, 0.0));
+
+    Interp interp;
+    interp.pos = mul(mul(proj, view), float4(position, 1.0));
+    interp.col = normal;
     return interp;
 }
 
