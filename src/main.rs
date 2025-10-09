@@ -161,6 +161,52 @@ fn main() {
             )
             .unwrap();
 
+        let depth_image = device
+            .create_image(
+                &vk::ImageCreateInfo::default()
+                    .image_type(vk::ImageType::TYPE_2D)
+                    .samples(vk::SampleCountFlags::TYPE_1)
+                    .mip_levels(1)
+                    .usage(vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT)
+                    .array_layers(1)
+                    .format(vk::Format::D32_SFLOAT)
+                    .extent(extent),
+                None,
+            )
+            .unwrap();
+
+        let depth_image_requirements = device.get_image_memory_requirements(depth_image);
+        assert_ne!(depth_image_requirements.memory_type_bits, 0);
+        let depth_image_memory_type_index =
+            depth_image_requirements.memory_type_bits.trailing_zeros();
+        let depth_image_memory = device
+            .allocate_memory(
+                &vk::MemoryAllocateInfo::default()
+                    .allocation_size(depth_image_requirements.size)
+                    .memory_type_index(depth_image_memory_type_index),
+                None,
+            )
+            .unwrap();
+        device
+            .bind_image_memory(depth_image, depth_image_memory, 0)
+            .unwrap();
+
+        let depth_image_subresource_range = vk::ImageSubresourceRange::default()
+            .layer_count(1)
+            .level_count(1)
+            .aspect_mask(vk::ImageAspectFlags::DEPTH);
+
+        let depth_image_view = device
+            .create_image_view(
+                &vk::ImageViewCreateInfo::default()
+                    .image(depth_image)
+                    .format(vk::Format::D32_SFLOAT)
+                    .view_type(vk::ImageViewType::TYPE_2D)
+                    .subresource_range(depth_image_subresource_range),
+                None,
+            )
+            .unwrap();
+
         // Open file and get size
         let mut dragon = std::fs::File::open("dragon.bin").unwrap();
         let dragon_size = dragon.metadata().unwrap().len();
@@ -230,7 +276,8 @@ fn main() {
             .unwrap();
 
         let mut rendering_create_info = vk::PipelineRenderingCreateInfo::default()
-            .color_attachment_formats(&[vk::Format::R8G8B8A8_UNORM]);
+            .color_attachment_formats(&[vk::Format::R8G8B8A8_UNORM])
+            .depth_attachment_format(vk::Format::D32_SFLOAT);
 
         let pipelines = device
             .create_graphics_pipelines(
@@ -275,6 +322,12 @@ fn main() {
                             vk::DynamicState::SCISSOR,
                         ]),
                     )
+                    .depth_stencil_state(
+                        &vk::PipelineDepthStencilStateCreateInfo::default()
+                            .depth_test_enable(true)
+                            .depth_write_enable(true)
+                            .depth_compare_op(vk::CompareOp::GREATER),
+                    )
                     .push_next(&mut rendering_create_info)],
                 None,
             )
@@ -312,6 +365,13 @@ fn main() {
                             float32: [0.1, 0.1, 0.2, 1.0],
                         },
                     })])
+                .depth_attachment(
+                    &vk::RenderingAttachmentInfo::default()
+                        .image_view(depth_image_view)
+                        .image_layout(vk::ImageLayout::GENERAL)
+                        .load_op(vk::AttachmentLoadOp::CLEAR)
+                        .store_op(vk::AttachmentStoreOp::STORE),
+                )
                 .render_area(vk::Rect2D::default().extent(vk::Extent2D {
                     width: width as _,
                     height: height as _,
