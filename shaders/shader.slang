@@ -1,6 +1,6 @@
 struct Interp {
     float4 pos: SV_Position;
-    float3 col;
+    float3 normal;
 };
 
 float4x4 perspective_reversed_infinite_z_vk(
@@ -53,15 +53,17 @@ Interp vertex(uint* address, uint vertex_id : SV_VertexID) {
     let normal = normals[index];
 
     let proj = perspective_reversed_infinite_z_vk(1.0297443, 1.0, 0.001);
-    let view = look_at_rh(float3(10.0), float3(0.0), float3(0.0, -1.0, 0.0));
+    let view = look_at_rh(float3(-12.0, 4.0, -12.0), float3(0.0), float3(0.0, 0.0, -1.0));
 
     Interp interp;
     interp.pos = mul(mul(proj, view), float4(position, 1.0));
-    interp.col = normal;
+    interp.normal = normal;
     return interp;
 }
 
 [shader("pixel")]
 float4 fragment(Interp in) {
-    return float4(in.col, 1.0);
+    let normal = normalize(in.normal);
+    let lighting = max(dot(normal, float3(0, 0, -1)), 0);
+    return float4(float3(lighting), 1.0);
 }
